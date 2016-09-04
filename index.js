@@ -51,7 +51,6 @@ http.createServer(function(req, res) {
 			var main = function(clue) {
 				var writeClue = function(time) {
 					var passed = new Date().getTime()-time.getTime();
-					console.log(passed);
 					var j = JSON.parse(clue.data);
 					var tr = j.slice(0, 1+passed/200000);
 					die(res, 200, '<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>'+tr.join("<br/><br/>")+'</body></html>', "text/html");
@@ -96,10 +95,33 @@ http.createServer(function(req, res) {
 	else if(req.url.indexOf("/qr/") === 0) {
 		var id = req.url.substring(4);
 		res.writeHead(200, {"Content-type": "image/png"});
-		console.log(Object.keys(req).sort());
 		var url = "http://"+req.headers.host+"/clue/"+id;
-		console.log(url);
 		qr.image(url).pipe(res);
+	}
+	else if(req.url.indexOf("/qrs/") === 0) {
+		var id = req.url.substring(5);
+		var getImgs = function(id, callback) {
+			db.query("SELECT depends FROM clues WHERE id=$1", [id], function(err, result) {
+				if(err) {
+					callback(err);
+				}
+				if(result.rows.length !== 1) {
+					callback("Clue not found.");
+				}
+				var tr = '<img src="/qr/'+id+'" />';
+				if(result.rows[0].depends) {
+					getImgs(result.rows[0].depends, function(tr2) {
+						callback(tr+tr2);
+					});
+				}
+				else {
+					callback(tr);
+				}
+			});
+		};
+		getImgs(id, function(tr) {
+			die(res, 200, tr, "text/html");
+		});
 	}
 	else {
 		die(res, 404, "404 Not Found");
