@@ -1,0 +1,13 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.7.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'npm:moment:20161019':
+    - db-migrate > moment:
+        reason: None given
+        expires: '2017-04-09T06:31:25.058Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:moment:20160126':
+    - db-migrate > moment:
+        patched: '2017-03-10T06:31:25.060Z'
